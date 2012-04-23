@@ -53,13 +53,33 @@ namespace YoutubePlaylistDownloader
             downloadCommand = new GenericActionCommand(DownloadFunction);
         }
 
-        public void ExecuteUrlFunction(object parameter)
+        private IEnumerable<YoutubeVideoEntry> videoEntries;
+
+        public IEnumerable<YoutubeVideoEntry> VideoEntries
+        {
+            get { return videoEntries; }
+            private set
+            {
+                videoEntries = value;
+                RaisePropertyChanged("VideoEntries");
+            }
+        }
+
+
+        public async void ExecuteUrlFunction(object parameter)
         {
             if (String.IsNullOrEmpty(currentUrl))
                 MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
             else
             {
+                if (!YoutubeWebHelper.IsValidId(currentUrl))
+                    MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                else
+                {
+                    var nodes = await YoutubeWebHelper.DownloadPlaylistAsync(currentUrl);
 
+                    VideoEntries = nodes;
+                }
             }
         }
 

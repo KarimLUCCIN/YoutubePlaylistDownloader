@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using HtmlAgilityPack;
 
 namespace YoutubePlaylistDownloader
 {
@@ -42,6 +43,19 @@ namespace YoutubePlaylistDownloader
                 imageUrl = value;
                 RaisePropertyChanged("ImageUrl");
             }
+        }
+
+        public YoutubeVideoEntry(HtmlNode node)
+        {
+            var url_node = node.SelectNodes(".//a[@href]");
+
+            if (url_node != null)
+                url = url_node.FirstOrDefault().Attributes["href"].Value;
+
+            var title_node = node.SelectNodes(".//span[contains(@class, 'video-title')]");
+
+            if (title_node != null)
+                title = title_node.FirstOrDefault().InnerText;
         }
 
         #region INotifyPropertyChanged Members

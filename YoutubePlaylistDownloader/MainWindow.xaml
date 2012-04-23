@@ -16,6 +16,24 @@
             </Border>     
             <Button Content="Vérifier" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
         </StackPanel>
+
+        <Border Grid.Row="1" Margin="4" CornerRadius="4" BorderBrush="Gray">
+            <ListBox Margin="4" ItemsSource="{Binding VideoEntries}" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Height="32">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="32"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="2" Text="{Binding Title}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
         
         <Button Grid.Row="2" IsEnabled="{Binding Verified}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
     </Grid>
