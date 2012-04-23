@@ -65,20 +65,46 @@ namespace YoutubePlaylistDownloader
             }
         }
 
+        private bool isReady = true;
 
+        public bool IsReady
+        {
+            get { return isReady; }
+            set
+            {
+                isReady = value;
+                RaisePropertyChanged("IsReady");
+            }
+        }
+        
         public async void ExecuteUrlFunction(object parameter)
         {
-            if (String.IsNullOrEmpty(currentUrl))
-                MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-            else
+            if (isReady)
             {
-                if (!YoutubeWebHelper.IsValidId(currentUrl))
-                    MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-                else
-                {
-                    var nodes = await YoutubeWebHelper.DownloadPlaylistAsync(currentUrl);
+                IsReady = false;
+                Verified = false;
 
-                    VideoEntries = nodes;
+                try
+                {
+                    if (String.IsNullOrEmpty(currentUrl))
+                        MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                    else
+                    {
+                        if (!YoutubeWebHelper.IsValidId(currentUrl))
+                            MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                        else
+                        {
+                            var nodes = await YoutubeWebHelper.DownloadPlaylistAsync(currentUrl);
+
+                            VideoEntries = nodes;
+
+                            Verified = VideoEntries.Count((p) => true) > 0;
+                        }
+                    }
+                }
+                finally
+                {
+                    IsReady = true;
                 }
             }
         }

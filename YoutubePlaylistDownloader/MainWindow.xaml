@@ -14,7 +14,7 @@
             <Border CornerRadius="4" BorderThickness="1" BorderBrush="Gray" Margin="4">
                 <TextBox Margin="2" Text="{Binding Mode=TwoWay, Path=CurrentUrl}" BorderThickness="0"/>
             </Border>     
-            <Button Content="Vérifier" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+            <Button Content="Vérifier" IsEnabled="{Binding IsReady}" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
         </StackPanel>
 
         <Border Grid.Row="1" Margin="4" CornerRadius="4" BorderBrush="Gray">
@@ -27,6 +27,8 @@
                                 <ColumnDefinition Width="4"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
+                            
+                            <Image Source="{Binding ImageUrl}"/>
                             
                             <TextBlock Grid.Column="2" Text="{Binding Title}"/>
                         </Grid>

@@ -56,6 +56,11 @@ namespace YoutubePlaylistDownloader
 
             if (title_node != null)
                 title = title_node.FirstOrDefault().InnerText;
+
+            var img_node = node.SelectNodes(".//img[@src]");
+
+            if (img_node != null)
+                imageUrl = "http:" + img_node.FirstOrDefault().Attributes["src"].Value;
         }
 
         #region INotifyPropertyChanged Members
