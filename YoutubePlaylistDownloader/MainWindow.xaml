@@ -1,0 +1,22 @@
+﻿<Window x:Class="YoutubePlaylistDownloader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock>Id de la playlist :</TextBlock>
+            <Border CornerRadius="4" BorderThickness="1" BorderBrush="Gray" Margin="4">
+                <TextBox Margin="2" Text="{Binding Mode=TwoWay, Path=CurrentUrl}" BorderThickness="0"/>
+            </Border>     
+            <Button Content="Vérifier" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+        </StackPanel>
+        
+        <Button Grid.Row="2" IsEnabled="{Binding Verified}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+    </Grid>
+</Window>
