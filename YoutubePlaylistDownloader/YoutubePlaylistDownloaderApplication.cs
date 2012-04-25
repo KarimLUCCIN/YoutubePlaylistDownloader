@@ -392,9 +392,52 @@ namespace YoutubePlaylistDownloader
 
                             if (!File.Exists(outputPath))
                             {
-                                await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
+                                const int maxRetry = 10;
 
-                                Debug.WriteLine("Completed\n\n");
+                                int retryCount = 0;
+                                
+                                bool success = false;
+
+                                Exception lastException = null;
+
+                                do
+                                {
+                                    try
+                                    {
+                                        await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
+
+                                        success = true;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Debug.WriteLine(lastException = ex);
+                                    }
+
+                                    retryCount++;
+                                } while (!success && retryCount <= maxRetry);
+
+                                if (!success)
+                                {
+                                    try
+                                    {
+                                        using (var strm = new FileStream(outputPath + ".error.log", FileMode.Create))
+                                        {
+                                            using (var wr = new StreamWriter(strm))
+                                            {
+                                                wr.WriteLine("From : " + targetStream);
+                                                wr.WriteLine();
+                                                wr.WriteLine();
+                                                wr.WriteLine(lastException.ToString());
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+
+                                    }
+                                }
+
+                                Debug.WriteLine(success ? "Completed\n\n" : "Failed\n\n");
                             }
                             else
                                 Debug.WriteLine("Skipped");
