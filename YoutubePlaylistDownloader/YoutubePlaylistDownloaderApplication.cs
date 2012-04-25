@@ -102,20 +102,27 @@ namespace YoutubePlaylistDownloader
 
                 try
                 {
-                    if (String.IsNullOrEmpty(currentUrl))
-                        MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-                    else
+                    try
                     {
-                        if (!YoutubeWebHelper.IsValidId(currentUrl))
+                        if (String.IsNullOrEmpty(currentUrl))
                             MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                         else
                         {
-                            var nodes = await YoutubeWebHelper.DownloadPlaylistAsync(currentUrl);
+                            if (!YoutubeWebHelper.IsValidId(currentUrl))
+                                MessageBox.Show("ID invalide", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                            else
+                            {
+                                var nodes = await YoutubeWebHelper.DownloadPlaylistAsync(currentUrl);
 
-                            VideoEntries = nodes.ToList();
+                                VideoEntries = nodes.ToList();
 
-                            Verified = VideoEntries.Count((p) => true) > 0;
+                                Verified = VideoEntries.Count((p) => true) > 0;
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(String.Format("ID invalide\n{0}", ex), "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 finally
