@@ -213,12 +213,9 @@ namespace YoutubePlaylistDownloader
                                 CurrentSong = video.Title;
                                 CurrentProgress = currentVideoIndex;
 
-                                var finalName = Path.Combine(downloadDirectory, video.Title);
+                                var finalName = Path.Combine(downloadDirectory, ConformTitle(video.Title));
 
-                                if (!File.Exists(finalName))
-                                {
-                                    await DownloadYoutubeVideoTo(video, finalName);
-                                }
+                                await DownloadYoutubeVideoTo(video, finalName);
 
                                 if (downloadCancel.IsCancellationRequested)
                                     break;
@@ -239,6 +236,14 @@ namespace YoutubePlaylistDownloader
                     }
                 }
             }
+        }
+
+        private string ConformTitle(string path)
+        {
+            foreach (var c in Path.GetInvalidPathChars())
+                path = path.Replace(c, '_');
+
+            return path;
         }
 
         private static string CharMatch(Match match)
@@ -385,9 +390,14 @@ namespace YoutubePlaylistDownloader
 
                             Debug.WriteLine(String.Format("Downloading {0}\nUrl : {1}\nTarget : {2}", video.Title, targetStream, outputPath));
 
-                            await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
+                            if (!File.Exists(outputPath))
+                            {
+                                await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
 
-                            Debug.WriteLine("Completed\n\n");
+                                Debug.WriteLine("Completed\n\n");
+                            }
+                            else
+                                Debug.WriteLine("Skipped");
                         }
                     }
                 }
