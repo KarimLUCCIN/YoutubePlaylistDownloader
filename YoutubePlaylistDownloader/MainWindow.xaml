@@ -9,6 +9,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel>
@@ -58,6 +59,16 @@
             
             <TextBlock Text="Progression :" Grid.Column="0" />
             <ProgressBar Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Grid.Column="1" Margin="10,0,0,0" BorderThickness="0" Background="{x:Null}"/>
+        </Grid>
+        
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Téléchargement :" Grid.Column="0" />
+            <ProgressBar Maximum="{Binding DownloadMaxProgress}" Value="{Binding DownloadCurrentProgress}" Grid.Column="1" Margin="10,0,0,0" BorderThickness="0" Background="{x:Null}"/>
         </Grid>
     </Grid>
 </Window>
