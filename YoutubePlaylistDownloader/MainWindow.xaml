@@ -7,6 +7,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel>
@@ -18,7 +20,7 @@
         </StackPanel>
 
         <Border Grid.Row="1" Margin="4" CornerRadius="4" BorderBrush="Gray">
-            <ListBox Margin="4" ItemsSource="{Binding VideoEntries}" BorderThickness="0">
+            <ListBox Margin="4" ItemsSource="{Binding VideoEntries}" BorderThickness="0" VirtualizingStackPanel.IsVirtualizing="True">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Height="32">
@@ -28,7 +30,7 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             
-                            <Image Source="{Binding ImageUrl}"/>
+                            <Image Source="{Binding ImageUrl, IsAsync=True}"/>
                             
                             <TextBlock Grid.Column="2" Text="{Binding Title}"/>
                         </Grid>
@@ -36,7 +38,26 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button IsEnabled="{Binding CanDownload}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+            
+            <Button IsEnabled="{Binding Downloading}" Content="Annuler" Command="{Binding CancelCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+        </StackPanel>
         
-        <Button Grid.Row="2" IsEnabled="{Binding Verified}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <TextBlock Text="Chanson :"/>
+            <TextBlock Text="{Binding CurrentSong}" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Text="Progression :" Grid.Column="0" />
+            <ProgressBar Maximum="{Binding MaxProgress}" Value="{Binding CurrentProgress}" Grid.Column="1" Margin="10,0,0,0" BorderThickness="0" Background="{x:Null}"/>
+        </Grid>
     </Grid>
 </Window>

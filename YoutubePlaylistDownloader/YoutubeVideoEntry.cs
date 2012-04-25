@@ -50,7 +50,15 @@ namespace YoutubePlaylistDownloader
             var url_node = node.SelectNodes(".//a[@href]");
 
             if (url_node != null)
-                url = url_node.FirstOrDefault().Attributes["href"].Value;
+            {
+                var url_value = url_node.FirstOrDefault().Attributes["href"].Value;
+                var splitIndex = url_value.IndexOf("&");
+             
+                if (splitIndex > 0)
+                {
+                    url = "http://www.youtube.com" + url_value.Substring(0, splitIndex);
+                }
+            }
 
             var title_node = node.SelectNodes(".//span[contains(@class, 'video-title')]");
 
