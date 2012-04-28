@@ -305,150 +305,172 @@ namespace YoutubePlaylistDownloader
                 RaisePropertyChanged("DownloadCurrentProgress");
             }
         }
-        
+
         private async Task DownloadYoutubeVideoTo(YoutubeVideoEntry video, string outputPath)
         {
             try
             {
-                var client = new WebClient();
-                var htmlCode = await client.DownloadStringTaskAsync(new Uri(video.Url), downloadCancel.Token);
-
-                if (!String.IsNullOrEmpty(htmlCode))
+                try
                 {
-                    var matches = playerConfigRegex.Match(htmlCode);
+                    var client = new WebClient();
+                    var htmlCode = String.Empty;
 
-                    var tx = matches.Groups[0].Value;
-
-                    var json = tx.Substring(tx.IndexOf("=") + 1);
-                    json = Regex.Replace(json, @"\\u(?<code>\d{4})", CharMatch);
-                    json = HttpUtility.UrlDecode(json);
-                    json = json.Replace(@"\/", "\\");
-                    json = HttpUtility.UrlDecode(json);
-
-                    var splitSequences = json.Split(new string[] { "url=" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    var streams = new List<YoutubeStreamEntry>();
-
-                    foreach (var splitSequence in splitSequences)
+                    try
                     {
-                        if (splitSequence.StartsWith("http"))
-                        {
-                            var urlVideos = from Match part in urlPartsRegex.Matches(splitSequence) select part.Groups[0].Value;
-
-                            foreach (var urlVideo in urlVideos)
-                            {
-                                if (!String.IsNullOrEmpty(urlVideo) && urlVideo.Contains("http"))
-                                {
-                                    var streamEntry = new YoutubeStreamEntry()
-                                    {
-                                        StreamType = videoTypeRegex.Match(urlVideo).Groups[0].Value.Substring("&type=".Length),
-                                        StreamUrl = urlVideo
-                                    };
-
-                                    var qualityMatch = videoQualityRegex.Match(urlVideo).Groups;
-
-                                    if (qualityMatch.Count > 0)
-                                        streamEntry.StreamQuality = qualityMatch[0].Value.Substring("quality=".Length);
-                                    else
-                                        streamEntry.StreamQuality = String.Empty;
-
-                                    streams.Add(streamEntry);
-                                }
-                            }
-                        }
+                        htmlCode = await client.DownloadStringTaskAsync(new Uri(video.Url), downloadCancel.Token);
+                    }
+                    catch (Exception ex)
+                    {
+                        htmlCode = null;
+                        OutputErrorLog(outputPath, "[not resolved] " + video.Url, ex);
                     }
 
-                    if (streams.Count > 0)
+                    if (!String.IsNullOrEmpty(htmlCode))
                     {
-                        /* on évite la HD ... */
+                        var matches = playerConfigRegex.Match(htmlCode);
 
+                        var tx = matches.Groups[0].Value;
 
-                        /* on cherche mp4 d'abord */
-                        bool isMP4 = true;
-                        var targetStream =
-                            enableHD
-                            ? (from entry in streams where entry.StreamType.Contains("mp4") select entry.StreamUrl).FirstOrDefault()
-                            : (from entry in streams where (entry.StreamType.Contains("mp4") && !entry.StreamQuality.Contains("hd")) select entry.StreamUrl).FirstOrDefault();
+                        var json = tx.Substring(tx.IndexOf("=") + 1);
+                        json = Regex.Replace(json, @"\\u(?<code>\d{4})", CharMatch);
+                        json = HttpUtility.UrlDecode(json);
+                        json = json.Replace(@"\/", "\\");
+                        json = HttpUtility.UrlDecode(json);
 
-                        if (String.IsNullOrEmpty(targetStream))
+                        var splitSequences = json.Split(new string[] { "url=" }, StringSplitOptions.RemoveEmptyEntries);
+
+                        var streams = new List<YoutubeStreamEntry>();
+
+                        foreach (var splitSequence in splitSequences)
                         {
-                            /* on cherche flv */
-                            isMP4 = false;
-                            targetStream =
-                                enableHD
-                                ? (from entry in streams where entry.StreamType.Contains("flv") select entry.StreamUrl).FirstOrDefault()
-                                : (from entry in streams where (entry.StreamType.Contains("flv") && !entry.StreamQuality.Contains("hd")) select entry.StreamUrl).FirstOrDefault();
-                        }
-
-                        if (String.IsNullOrEmpty(targetStream))
-                        {
-                            Debug.WriteLine(String.Format("Stream not found for {0}", video.Title));
-                        }
-                        else
-                        {
-                            outputPath += isMP4 ? ".mp4" : ".flv";
-
-                            Debug.WriteLine(String.Format("Downloading {0}\nUrl : {1}\nTarget : {2}", video.Title, targetStream, outputPath));
-
-                            if (!File.Exists(outputPath))
+                            if (splitSequence.StartsWith("http"))
                             {
-                                const int maxRetry = 10;
+                                var urlVideos = from Match part in urlPartsRegex.Matches(splitSequence) select part.Groups[0].Value;
 
-                                int retryCount = 0;
-                                
-                                bool success = false;
-
-                                Exception lastException = null;
-
-                                do
+                                foreach (var urlVideo in urlVideos)
                                 {
-                                    try
+                                    if (!String.IsNullOrEmpty(urlVideo) && urlVideo.Contains("http"))
                                     {
-                                        await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
-
-                                        success = true;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Debug.WriteLine(lastException = ex);
-                                    }
-
-                                    retryCount++;
-                                } while (!success && retryCount <= maxRetry);
-
-                                if (!success)
-                                {
-                                    try
-                                    {
-                                        using (var strm = new FileStream(outputPath + ".error.log", FileMode.Create))
+                                        var streamEntry = new YoutubeStreamEntry()
                                         {
-                                            using (var wr = new StreamWriter(strm))
-                                            {
-                                                wr.WriteLine("From : " + targetStream);
-                                                wr.WriteLine();
-                                                wr.WriteLine();
-                                                wr.WriteLine(lastException.ToString());
-                                            }
-                                        }
-                                    }
-                                    catch
-                                    {
+                                            StreamType = videoTypeRegex.Match(urlVideo).Groups[0].Value.Substring("&type=".Length),
+                                            StreamUrl = urlVideo
+                                        };
 
+                                        var qualityMatch = videoQualityRegex.Match(urlVideo).Groups;
+
+                                        if (qualityMatch.Count > 0)
+                                            streamEntry.StreamQuality = qualityMatch[0].Value.Substring("quality=".Length);
+                                        else
+                                            streamEntry.StreamQuality = String.Empty;
+
+                                        streams.Add(streamEntry);
                                     }
                                 }
+                            }
+                        }
 
-                                Debug.WriteLine(success ? "Completed\n\n" : "Failed\n\n");
+                        if (streams.Count > 0)
+                        {
+                            /* on évite la HD ... */
+
+
+                            /* on cherche mp4 d'abord */
+                            bool isMP4 = true;
+                            var targetStream =
+                                enableHD
+                                ? (from entry in streams where entry.StreamType.Contains("mp4") select entry.StreamUrl).FirstOrDefault()
+                                : (from entry in streams where (entry.StreamType.Contains("mp4") && !entry.StreamQuality.Contains("hd")) select entry.StreamUrl).FirstOrDefault();
+
+                            if (String.IsNullOrEmpty(targetStream))
+                            {
+                                /* on cherche flv */
+                                isMP4 = false;
+                                targetStream =
+                                    enableHD
+                                    ? (from entry in streams where entry.StreamType.Contains("flv") select entry.StreamUrl).FirstOrDefault()
+                                    : (from entry in streams where (entry.StreamType.Contains("flv") && !entry.StreamQuality.Contains("hd")) select entry.StreamUrl).FirstOrDefault();
+                            }
+
+                            if (String.IsNullOrEmpty(targetStream))
+                            {
+                                Debug.WriteLine(String.Format("Stream not found for {0}", video.Title));
                             }
                             else
-                                Debug.WriteLine("Skipped");
+                            {
+                                outputPath += isMP4 ? ".mp4" : ".flv";
+
+                                Debug.WriteLine(String.Format("Downloading {0}\nUrl : {1}\nTarget : {2}", video.Title, targetStream, outputPath));
+
+                                if (!File.Exists(outputPath))
+                                {
+                                    const int maxRetry = 10;
+
+                                    int retryCount = 0;
+
+                                    bool success = false;
+
+                                    Exception lastException = null;
+
+                                    do
+                                    {
+                                        try
+                                        {
+                                            await client.DownloadFileTaskAsync(new Uri(targetStream), outputPath, downloadCancel.Token, this);
+
+                                            success = true;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Debug.WriteLine(lastException = ex);
+                                        }
+
+                                        retryCount++;
+                                    } while (!success && retryCount <= maxRetry);
+
+                                    if (!success)
+                                    {
+                                        OutputErrorLog(outputPath, targetStream, lastException);
+                                    }
+
+                                    Debug.WriteLine(success ? "Completed\n\n" : "Failed\n\n");
+                                }
+                                else
+                                    Debug.WriteLine("Skipped");
+                            }
                         }
                     }
                 }
+                finally
+                {
+                    DownloadCurrentProgress = 0;
+                    DownloadMaxProgress = 1;
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                DownloadCurrentProgress = 0;
-                DownloadMaxProgress = 1;
+                OutputErrorLog(outputPath, "[general error] " + video.Url, ex);
+            }
+        }
+
+        private static void OutputErrorLog(string outputPath, string targetStream, Exception lastException)
+        {
+            try
+            {
+                using (var strm = new FileStream(outputPath + ".error.log", FileMode.Create))
+                {
+                    using (var wr = new StreamWriter(strm))
+                    {
+                        wr.WriteLine("From : " + targetStream);
+                        wr.WriteLine();
+                        wr.WriteLine();
+                        wr.WriteLine(lastException.ToString());
+                    }
+                }
+            }
+            catch
+            {
+
             }
         }
 

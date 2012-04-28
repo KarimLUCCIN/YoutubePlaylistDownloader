@@ -41,9 +41,11 @@
         </Border>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal">
-            <Button IsEnabled="{Binding CanDownload}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+            <Button IsEnabled="{Binding CanDownload}" Content="Télécharger" Command="{Binding DownloadCommand}" Width="150" HorizontalAlignment="Left" Margin="4"/>
             
-            <Button IsEnabled="{Binding Downloading}" Content="Annuler" Command="{Binding CancelCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+            <Button IsEnabled="{Binding Downloading}" Content="Annuler" Command="{Binding CancelCommand}" Width="150" HorizontalAlignment="Left" Margin="4"/>
+
+            <CheckBox IsChecked="{Binding EnableHD}" Content="Activer la HD" VerticalAlignment="Center"/>
         </StackPanel>
         
         <StackPanel Grid.Row="3" Orientation="Horizontal">
