@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.IO;
 using HtmlAgilityPack;
+using System.Text.RegularExpressions;
 
 namespace YoutubePlaylistDownloader
 {
@@ -19,7 +20,7 @@ namespace YoutubePlaylistDownloader
 
         public static bool IsValidId(string id)
         {
-            return id.All(c => char.IsLetterOrDigit(c));
+            return id.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
         }
 
         private static async Task<HtmlDocument> LoadHtmlDocumentFromString(string html)
@@ -33,6 +34,8 @@ namespace YoutubePlaylistDownloader
             });
         }
 
+        static Regex titleParser = new Regex(@"\<title\>[^\<]*?\</title\>", RegexOptions.Multiline);
+
         public static async Task<IEnumerable<YoutubeVideoEntry>> DownloadPlaylistAsync(string id)
         {
             try
@@ -40,25 +43,76 @@ namespace YoutubePlaylistDownloader
                 var url = String.Format("http://www.youtube.com/playlist?list={0}", id);
 
                 var client = new WebClient();
-                var htmlCode = await client.DownloadStringTaskAsync(url);
+                string htmlCode = null;
 
-                if (String.IsNullOrEmpty(htmlCode))
-                    return null;
+                bool tryDirectVideo = false;
+
+                try
+                {
+                    htmlCode = await client.DownloadStringTaskAsync(url);
+                }
+                catch
+                {
+                    tryDirectVideo = true;
+                }
+
+                if (tryDirectVideo)
+                {
+                    return await TryDirectVideo(id, url, client, htmlCode);
+                }
                 else
                 {
-                    var document = await LoadHtmlDocumentFromString(htmlCode);
-
-                    var nodes = await TaskEx.Run(() =>
+                    if (String.IsNullOrEmpty(htmlCode))
+                        return null;
+                    else
                     {
-                        return document.DocumentNode.SelectNodes("//li[contains(@class, 'playlist-video-item')]");
-                    });
+                        try
+                        {
+                            var document = await LoadHtmlDocumentFromString(htmlCode);
 
-                    return from node in nodes select new YoutubeVideoEntry(node);
+                            var nodes = await TaskEx.Run(() =>
+                            {
+                                return document.DocumentNode.SelectNodes("//li[contains(@class, 'playlist-video-item')]");
+                            });
+
+                            return from node in nodes select new YoutubeVideoEntry(node);
+                        }
+                        catch
+                        {
+                            tryDirectVideo = true;
+                        }
+
+                        if (tryDirectVideo)
+                            return await TryDirectVideo(id, url, client, htmlCode);
+                        else
+                            return null;
+                    }
                 }
             }
             catch
             {
                 return null;
+            }
+        }
+
+        private static async Task<IEnumerable<YoutubeVideoEntry>> TryDirectVideo(string id, string url, WebClient client, string htmlCode)
+        {
+            /* c'est peut être une vidéo */
+            url = String.Format("http://www.youtube.com/watch?v={0}", id);
+            htmlCode = await client.DownloadStringTaskAsync(url);
+
+            if (String.IsNullOrEmpty(htmlCode))
+                return null;
+            else
+            {
+                var titleMatch = titleParser.Match(htmlCode);
+                var title = (titleMatch != null && titleMatch.Value != null) ? titleMatch.Value.Substring("<title>".Length, titleMatch.Value.Length - "<title></title>".Length) : "Unknown";
+
+                return new YoutubeVideoEntry[]{new YoutubeVideoEntry(){
+                            Title = title,
+                            Url = url,
+                            ImageUrl = String.Empty}
+                        };
             }
         }
     }

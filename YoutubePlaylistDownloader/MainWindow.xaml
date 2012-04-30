@@ -13,11 +13,14 @@
         </Grid.RowDefinitions>
 
         <StackPanel>
-            <TextBlock>Id de la playlist :</TextBlock>
+            <TextBlock>Id de la playlist ou de la vidéo:</TextBlock>
             <Border CornerRadius="4" BorderThickness="1" BorderBrush="Gray" Margin="4">
                 <TextBox Margin="2" Text="{Binding Mode=TwoWay, Path=CurrentUrl}" BorderThickness="0"/>
-            </Border>     
-            <Button Content="Vérifier" IsEnabled="{Binding IsReady}" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+            </Border>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Vérifier" IsEnabled="{Binding IsReady}" Command="{Binding ExecuteUrlCommand}" Width="200" HorizontalAlignment="Left" Margin="4"/>
+                <Button Content="Invert Selection" IsEnabled="{Binding CanDownload}" Command="{Binding InvertSelectionCommand}"  Width="200" HorizontalAlignment="Left" Margin="4"/>
+            </StackPanel>
         </StackPanel>
 
         <Border Grid.Row="1" Margin="4" CornerRadius="4" BorderBrush="Gray">
@@ -26,14 +29,17 @@
                     <DataTemplate>
                         <Grid Height="32">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16"/>
                                 <ColumnDefinition Width="32"/>
                                 <ColumnDefinition Width="4"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             
-                            <Image Source="{Binding ImageUrl, IsAsync=True}"/>
+                            <CheckBox IsChecked="{Binding Selected, Mode=TwoWay}"/>
                             
-                            <TextBlock Grid.Column="2" Text="{Binding Title}"/>
+                            <Image Grid.Column="1" Source="{Binding ImageUrl, IsAsync=True}"/>
+                            
+                            <TextBlock Grid.Column="3" Text="{Binding Title}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

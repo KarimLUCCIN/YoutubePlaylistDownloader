@@ -45,6 +45,23 @@ namespace YoutubePlaylistDownloader
             }
         }
 
+        private bool selected = true;
+
+        public bool Selected
+        {
+            get { return selected; }
+            set
+            {
+                selected = value;
+                RaisePropertyChanged("Selected");
+            }
+        }
+
+        public YoutubeVideoEntry()
+        {
+
+        }
+        
         public YoutubeVideoEntry(HtmlNode node)
         {
             var url_node = node.SelectNodes(".//a[@href]");

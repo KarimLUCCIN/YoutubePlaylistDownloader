@@ -48,6 +48,12 @@ namespace YoutubePlaylistDownloader
             get { return cancelCommand; }
         }
 
+        private GenericActionCommand invertSelectionCommand;
+        public GenericActionCommand InvertSelectionCommand
+        {
+            get { return invertSelectionCommand; }
+        }
+
         private bool verified = false;
 
         public bool Verified
@@ -66,6 +72,7 @@ namespace YoutubePlaylistDownloader
             executeUrlCommand = new GenericActionCommand(ExecuteUrlFunction);
             downloadCommand = new GenericActionCommand(DownloadFunction);
             cancelCommand = new GenericActionCommand(CancelFunction);
+            invertSelectionCommand = new GenericActionCommand(InvertSelectionFunction);
         }
 
         private IList<YoutubeVideoEntry> videoEntries;
@@ -90,6 +97,14 @@ namespace YoutubePlaylistDownloader
                 isReady = value;
                 RaisePropertyChanged("IsReady");
                 RaisePropertyChanged("CanDownload");
+            }
+        }
+
+        public void InvertSelectionFunction(object parameter)
+        {
+            foreach (var item in videoEntries)
+            {
+                item.Selected = !item.Selected;
             }
         }
         
@@ -210,15 +225,18 @@ namespace YoutubePlaylistDownloader
                             {
                                 var video = videoEntries[currentVideoIndex];
 
-                                CurrentSong = video.Title;
-                                CurrentProgress = currentVideoIndex;
+                                if (video.Selected)
+                                {
+                                    CurrentSong = video.Title;
+                                    CurrentProgress = currentVideoIndex;
 
-                                var finalName = Path.Combine(downloadDirectory, ConformTitle(video.Title));
+                                    var finalName = Path.Combine(downloadDirectory, ConformTitle(video.Title));
 
-                                await DownloadYoutubeVideoTo(video, finalName);
+                                    await DownloadYoutubeVideoTo(video, finalName);
 
-                                if (downloadCancel.IsCancellationRequested)
-                                    break;
+                                    if (downloadCancel.IsCancellationRequested)
+                                        break;
+                                }
                             }
                         }
                         catch (Exception ex)
