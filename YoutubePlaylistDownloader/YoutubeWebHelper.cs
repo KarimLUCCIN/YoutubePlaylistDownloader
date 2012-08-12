@@ -75,7 +75,10 @@ namespace YoutubePlaylistDownloader
                                 return document.DocumentNode.SelectNodes("//li[contains(@class, 'playlist-video-item')]");
                             });
 
-                            return from node in nodes select new YoutubeVideoEntry(node);
+                            if (nodes == null)
+                                tryDirectVideo = true;
+                            else
+                                return from node in nodes select new YoutubeVideoEntry(node);
                         }
                         catch
                         {

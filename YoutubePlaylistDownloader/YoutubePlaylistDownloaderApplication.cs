@@ -377,7 +377,9 @@ namespace YoutubePlaylistDownloader
 
                                         var qualityMatch = videoQualityRegex.Match(urlVideo).Groups;
 
-                                        if (qualityMatch.Count > 0)
+                                        if (qualityMatch.Count > 0 
+                                            && !String.IsNullOrEmpty(qualityMatch[0].Value)
+                                            && qualityMatch[0].Value.Length > "quality=".Length)
                                             streamEntry.StreamQuality = qualityMatch[0].Value.Substring("quality=".Length);
                                         else
                                             streamEntry.StreamQuality = String.Empty;
