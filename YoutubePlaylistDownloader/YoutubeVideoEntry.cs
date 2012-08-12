@@ -82,6 +82,9 @@ namespace YoutubePlaylistDownloader
             if (title_node != null)
                 title = title_node.FirstOrDefault().InnerText;
 
+            if (!String.IsNullOrEmpty(title))
+                title = title.Trim();
+
             var img_node = node.SelectNodes(".//img[@src]");
 
             if (img_node != null)
